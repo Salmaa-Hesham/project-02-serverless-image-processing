@@ -1,0 +1,124 @@
+<mxfile host="app.diagrams.net" modified="2026-09-26T20:00:00.000Z" agent="Mozilla/5.0" version="21.6.5" type="device">
+  <diagram id="aws-project-02" name="Serverless Image Processing Pipeline">
+    <mxGraphModel dx="1422" dy="880" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Client & Ingress Box -->
+        <mxCell id="box-client" value="Client Ingestion Tier" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#F8FAFC;strokeColor=#64748B;verticalAlign=top;align=left;spacingLeft=15;spacingTop=10;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="60" y="40" width="400" height="240" as="geometry" />
+        </mxCell>
+        <mxCell id="client" value="Client App / User" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#334155;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="90" y="90" width="140" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="apigw" value="Amazon API Gateway&#xa;(POST /upload-url)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#9333EA;strokeColor=#581C87;fontColor=#FFFFFF;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="270" y="90" width="160" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="presign-lambda" value="Lambda: PresignedURL&#xa;(IAM S3:PutObject 15-min)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EA580C;strokeColor=#7C2D12;fontColor=#FFFFFF;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="270" y="180" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Storage & Queuing Box -->
+        <mxCell id="box-queue" value="Ingestion &amp; Asynchronous Buffering" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#FEF2F2;strokeColor=#EF4444;verticalAlign=top;align=left;spacingLeft=15;spacingTop=10;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="520" y="40" width="460" height="240" as="geometry" />
+        </mxCell>
+        <mxCell id="s3-src" value="S3 Source Bucket&#xa;(raw-image-uploads)&#xa;Lifecycle: 30-day Expire" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#16A34A;strokeColor=#14532D;fontColor=#FFFFFF;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="550" y="90" width="180" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="sqs-main" value="Amazon SQS Queue&#xa;(ImageProcessingQueue)&#xa;VisTimeout: 180s" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DC2626;strokeColor=#7F1D1D;fontColor=#FFFFFF;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="780" y="90" width="170" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="sqs-dlq" value="Amazon SQS DLQ&#xa;(maxReceiveCount: 3)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#7F1D1D;strokeColor=#450A0A;fontColor=#FFFFFF;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="780" y="190" width="170" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Orchestration Engine Box -->
+        <mxCell id="box-engine" value="Orchestration &amp; Processing Engine" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#EFF6FF;strokeColor=#3B82F6;verticalAlign=top;align=left;spacingLeft=15;spacingTop=10;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="60" y="340" width="920" height="340" as="geometry" />
+        </mxCell>
+        <mxCell id="poller-lambda" value="Lambda: QueueConsumer&#xa;(BatchSize: 5)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EA580C;strokeColor=#7C2D12;fontColor=#FFFFFF;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="100" y="440" width="180" height="60" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="sfn" value="AWS Step Functions: ImagePipelineWorkflow" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#DBEAFE;strokeColor=#2563EB;verticalAlign=top;align=left;spacingLeft=10;spacingTop=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="340" y="380" width="600" height="270" as="geometry" />
+        </mxCell>
+        <mxCell id="step-validate" value="1. Validate MIME &amp; Header" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2563EB;strokeColor=#1E3A8A;fontColor=#FFFFFF;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="370" y="440" width="170" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="step-thumb" value="2. Resize Thumbnail&#xa;(150x150 WebP)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2563EB;strokeColor=#1E3A8A;fontColor=#FFFFFF;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="580" y="410" width="160" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="step-watermark" value="3. Watermark Full-Res&#xa;(1080p WebP)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2563EB;strokeColor=#1E3A8A;fontColor=#FFFFFF;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="580" y="480" width="160" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="step-meta" value="4. Write Metadata to DynamoDB" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1D4ED8;strokeColor=#1E3A8A;fontColor=#FFFFFF;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="760" y="440" width="160" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Destination & Distribution Box -->
+        <mxCell id="box-dest" value="Storage, Distribution &amp; Delivery" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#F0FDF4;strokeColor=#16A34A;verticalAlign=top;align=left;spacingLeft=15;spacingTop=10;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="1040" y="40" width="480" height="640" as="geometry" />
+        </mxCell>
+        <mxCell id="s3-dst" value="S3 Destination Bucket&#xa;(processed-images)&#xa;Private + OAC Enabled" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#16A34A;strokeColor=#14532D;fontColor=#FFFFFF;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1080" y="100" width="200" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="dynamodb" value="Amazon DynamoDB&#xa;(ImageMetadataTable)&#xa;Pay-Per-Request" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4338CA;strokeColor=#312E81;fontColor=#FFFFFF;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1310" y="100" width="180" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="cloudfront" value="Amazon CloudFront&#xa;(Global CDN Distribution)&#xa;Edge Caching" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#9333EA;strokeColor=#581C87;fontColor=#FFFFFF;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1150" y="270" width="240" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="end-user" value="End Users / Viewers" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1E293B;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1190" y="450" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="sns" value="Amazon SNS Topic&#xa;(PipelineAlerts)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EA580C;strokeColor=#7C2D12;fontColor=#FFFFFF;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1190" y="560" width="160" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Connectors -->
+        <mxCell id="e1" edge="1" source="client" target="apigw" style="strokeWidth=2;strokeColor=#475569;" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" edge="1" source="apigw" target="presign-lambda" style="strokeWidth=2;strokeColor=#475569;" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" edge="1" source="client" target="s3-src" style="strokeWidth=2;strokeColor=#16A34A;" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" edge="1" source="s3-src" target="sqs-main" style="strokeWidth=2;strokeColor=#DC2626;" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" edge="1" source="sqs-main" target="sqs-dlq" style="strokeWidth=2;strokeColor=#7F1D1D;dashed=1;" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" edge="1" source="sqs-main" target="poller-lambda" style="strokeWidth=2;strokeColor=#EA580C;" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" edge="1" source="poller-lambda" target="sfn" style="strokeWidth=2;strokeColor=#2563EB;" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" edge="1" source="step-thumb" target="s3-dst" style="strokeWidth=2;strokeColor=#16A34A;" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" edge="1" source="step-watermark" target="s3-dst" style="strokeWidth=2;strokeColor=#16A34A;" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" edge="1" source="step-meta" target="dynamodb" style="strokeWidth=2;strokeColor=#4338CA;" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e11" edge="1" source="s3-dst" target="cloudfront" style="strokeWidth=2;strokeColor=#9333EA;" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e12" edge="1" source="cloudfront" target="end-user" style="strokeWidth=2;strokeColor=#2563EB;" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e13" edge="1" source="sqs-dlq" target="sns" style="strokeWidth=2;strokeColor=#EA580C;dashed=1;" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
